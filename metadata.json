@@ -1,0 +1,6 @@
+{
+  "name": "AI Travel Planner & Adventure Companion",
+  "description": "An interactive, beautiful full-stack travel dashboard featuring automated daily itinerary generation, smart packing checklists, travel logs, and expense analytics powered by Gemini AI.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
