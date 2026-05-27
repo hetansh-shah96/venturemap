@@ -559,7 +559,7 @@ export default function App() {
                   </div>
                   <div className="flex justify-between">
                     <span>ENGINE INGRESS:</span>
-                    <span>GEMINI 1.5 FLASH</span>
+                    <span>GEMINI 2.0 FLASH</span>
                   </div>
                 </div>
               </div>
