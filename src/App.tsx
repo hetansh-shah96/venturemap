@@ -45,7 +45,7 @@ const curatedDestinations: CuratedDestination[] = [
     id: "dest-1",
     city: "Tokyo",
     country: "Japan",
-    image: "https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1513407030348-c983a97b98d8?auto=format&fit=crop&q=80&w=800",
     vibe: "Neon Futurism & Cherry Blossoms",
     season: "Spring / Autumn",
     description: "Witness the exquisite synthesis of ancient temples, electric nightlife, and world-leading culinary wonders.",
@@ -236,7 +236,7 @@ export default function App() {
 
       if (!resp.ok) {
         const errData = await resp.json();
-        throw new Error(errData.error || "Itinerary fetch failed.");
+        throw new Error(errData.details || errData.error || "Itinerary fetch failed.");
       }
 
       const decoded = await resp.json();
