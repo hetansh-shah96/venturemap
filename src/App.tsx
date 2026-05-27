@@ -559,7 +559,7 @@ export default function App() {
                   </div>
                   <div className="flex justify-between">
                     <span>ENGINE INGRESS:</span>
-                    <span>GEMINI 2.0 FLASH</span>
+                    <span>GROQ LLAMA 3.3 70B</span>
                   </div>
                 </div>
               </div>
@@ -664,7 +664,7 @@ export default function App() {
                   </div>
                   <h4 className="serif uppercase text-xs font-bold tracking-[0.1em] text-[#1A1A1A]">03. Automated Cognition</h4>
                   <p className="text-xs text-[#1A1A1A]/70 leading-relaxed tracking-wide">
-                    Combine Gemini 3.5's neural architecture with responsive checklists to track structural budgets and custom logs inside a single high-contrast canvas.
+                    Combine Groq AI 3.5's neural architecture with responsive checklists to track structural budgets and custom logs inside a single high-contrast canvas.
                   </p>
                 </div>
                 <div className="h-[1px] bg-[#1A1A1A]/10 mt-4"></div>
@@ -682,7 +682,7 @@ export default function App() {
               <div className="bg-[#EAEAE5] p-6 rounded-none border border-[#1A1A1A] space-y-5">
                 <div>
                   <h3 className="serif text-xl font-light text-[#1A1A1A]">Plan an <span className="italic">Adventure</span></h3>
-                  <p className="text-[10px] text-[#1A1A1A]/60 uppercase tracking-widest mt-0.5">Input parameters to request Gemini Travel Cognition.</p>
+                  <p className="text-[10px] text-[#1A1A1A]/60 uppercase tracking-widest mt-0.5">Input parameters to request Groq AI Travel Cognition.</p>
                 </div>
 
                 <div className="space-y-4">
@@ -856,7 +856,7 @@ export default function App() {
                   <div className="space-y-2 max-w-sm">
                     <h4 className="serif text-xl font-light text-[#1A1A1A]">Consulting Travel Secrets...</h4>
                     <p className="text-xs text-[#1A1A1A]/70 leading-relaxed uppercase tracking-wider">
-                      Gemini is compiling route sequences, authentic bistros, and localized architectural walks.
+                      Groq AI is compiling route sequences, authentic bistros, and localized architectural walks.
                     </p>
                   </div>
                   <div className="bg-[#F4F4F1] border border-[#1A1A1A] p-5 text-left max-w-md w-full text-xs space-y-1.5 font-mono">
@@ -1225,7 +1225,7 @@ export default function App() {
                   Poetic Travel <span className="italic">Postcard Diary</span>
                 </h3>
                 <p className="text-[10px] text-[#1A1A1A]/60 uppercase tracking-[0.2em] max-w-md mx-auto font-semibold">
-                  Input raw thoughts or observations, and let Gemini compile postcards in elegant spacing layouts.
+                  Input raw thoughts or observations, and let Groq AI compile postcards in elegant spacing layouts.
                 </p>
               </div>
 
@@ -1373,7 +1373,7 @@ export default function App() {
       <footer className="bg-[#1A1A1A] text-[#F4F4F1]/65 text-[9px] py-10 text-center border-t border-[#1A1A1A] mt-24 font-mono uppercase tracking-wider">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="font-bold">
-            VentureMap Travel Concierge &bull; Powered by Gemini Cognition &bull; Full-Stack React Express
+            VentureMap Travel Concierge &bull; Powered by Groq AI Cognition &bull; Full-Stack React Express
           </p>
           <div className="flex gap-4">
             <span className="hover:text-white cursor-pointer transition-colors">Offline local archives active</span>
