@@ -37,7 +37,7 @@ Travel preferences:
 Make the activities vivid, interactive, and distinct. Provide local secrets, precise timings, and logical route flows. Ensure names are authentic and provide practical travel tips for each location.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-1.5-flash",
       contents: prompt,
       config: {
         systemInstruction: "You are a master globetrotter, world-class luxury concierge, and local expert travel guide. Generate detailed, authentic itineraries customized to user preferences with specific local highlights.",
@@ -116,7 +116,7 @@ Raw Notes: "${draftText}"
 Enhance the descriptions, add historical notes if applicable, and format it artistically. Advise on a specific visual 'vibe/style palette' describing custom color pairings.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-1.5-flash",
       contents: prompt,
       config: {
         systemInstruction: "You are a poetic travel writer, creative scrapbook artist, and visual designer. Convert messy draft notes into beautifully descriptive personal diary archives.",
