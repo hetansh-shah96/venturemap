@@ -16,11 +16,6 @@ app.use(express.json());
 // Initialize server-side Gemini AI client safely using the instructions from the gemini-api skill
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      "User-Agent": "aistudio-build",
-    },
-  },
 });
 
 // Endpoint: Generate structured travel itineraries
