@@ -625,24 +625,67 @@ ${restHtml}
       {/* Header — compact on mobile, full on desktop */}
       <header className="sticky top-0 z-[1001] bg-[#F4F4F1]/95 backdrop-blur-md border-b border-[#1A1A1A] py-3 md:py-6 px-4 md:px-12 flex items-center justify-between gap-4 transition-all">
         <div className="flex items-center gap-3">
-          {/* Globe + route icon — inline SVG matches the app icon aesthetic */}
-          <svg viewBox="0 0 44 44" className="w-9 h-9 md:w-11 md:h-11 flex-shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="44" height="44" rx="10" fill="#1A1A1A"/>
-            {/* Globe circle */}
-            <circle cx="26" cy="18" r="12" stroke="#F4F4F1" strokeWidth="1.4"/>
-            {/* Second smaller arc */}
-            <circle cx="14" cy="28" r="7" stroke="#F4F4F1" strokeWidth="1.0"/>
-            {/* Route line lower-left to upper-right */}
-            <line x1="5" y1="39" x2="39" y2="6" stroke="#F4F4F1" strokeWidth="3" strokeLinecap="round"/>
-            {/* Chevron cut-outs on the route */}
-            <polygon points="14,27 11,22 17,22" fill="#1A1A1A"/>
-            <polygon points="23,18 20,13 26,13" fill="#1A1A1A"/>
-            <polygon points="32,9 29,4 35,4" fill="#1A1A1A"/>
-            {/* Departure ring */}
-            <circle cx="5" cy="39" r="3" stroke="#F4F4F1" strokeWidth="1.3"/>
-            {/* Destination dot + ring */}
-            <circle cx="39" cy="6" r="2.8" fill="#F4F4F1"/>
-            <circle cx="39" cy="6" r="5" stroke="#F4F4F1" strokeWidth="1"/>
+          {/* Travel seal badge — circular, curved text, globe */}
+          <svg viewBox="0 0 100 100" className="w-10 h-10 md:w-12 md:h-12 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              {/* Arc paths for curved text */}
+              <path id="topArc"  d="M 9,50 A 41,41 0 0,1 91,50"/>
+              <path id="botArc"  d="M 22,74 A 32,32 0 0,0 78,74"/>
+            </defs>
+
+            {/* Background disc */}
+            <circle cx="50" cy="50" r="49" fill="#1A1A1A"/>
+
+            {/* Outer rings */}
+            <circle cx="50" cy="50" r="48" fill="none" stroke="#F4F4F1" strokeWidth="1.4"/>
+            <circle cx="50" cy="50" r="44" fill="none" stroke="#F4F4F1" strokeWidth="0.6"/>
+
+            {/* Globe boundary */}
+            <circle cx="50" cy="50" r="30" fill="none" stroke="#F4F4F1" strokeWidth="0.8"/>
+
+            {/* Latitude lines */}
+            <ellipse cx="50" cy="50" rx="30" ry="8"  fill="none" stroke="#444442" strokeWidth="0.5"/>
+            <ellipse cx="50" cy="50" rx="30" ry="17" fill="none" stroke="#444442" strokeWidth="0.5"/>
+            <ellipse cx="50" cy="50" rx="30" ry="26" fill="none" stroke="#444442" strokeWidth="0.5"/>
+            {/* Equator */}
+            <line x1="20" y1="50" x2="80" y2="50" stroke="#555553" strokeWidth="0.6"/>
+            {/* Prime meridian */}
+            <line x1="50" y1="20" x2="50" y2="80" stroke="#555553" strokeWidth="0.6"/>
+            {/* Offset longitude arc */}
+            <ellipse cx="50" cy="50" rx="14" ry="30" fill="none" stroke="#444442" strokeWidth="0.5"/>
+
+            {/* Continent blobs — simplified fills */}
+            {/* Africa */}
+            <path d="M52,38 L57,39 L60,42 L61,46 L60,52 L58,57 L54,62 L50,64 L47,61 L46,55 L47,48 L48,42 Z" fill="#888886" stroke="#F4F4F1" strokeWidth="0.4"/>
+            {/* Europe */}
+            <path d="M43,32 L47,31 L50,33 L49,37 L46,39 L43,38 L41,35 Z" fill="#888886" stroke="#F4F4F1" strokeWidth="0.4"/>
+            {/* Asia */}
+            <path d="M52,30 L62,31 L68,35 L70,40 L66,44 L60,46 L56,44 L52,42 L50,38 L51,33 Z" fill="#888886" stroke="#F4F4F1" strokeWidth="0.4"/>
+            {/* N America */}
+            <path d="M28,32 L33,30 L36,33 L35,38 L33,43 L30,46 L27,44 L26,39 L27,34 Z" fill="#888886" stroke="#F4F4F1" strokeWidth="0.4"/>
+            {/* S America */}
+            <path d="M33,50 L36,49 L38,52 L37,58 L35,63 L32,64 L30,60 L30,54 Z" fill="#888886" stroke="#F4F4F1" strokeWidth="0.4"/>
+            {/* Australia */}
+            <path d="M65,55 L70,54 L72,57 L71,61 L67,62 L64,60 L64,57 Z" fill="#888886" stroke="#F4F4F1" strokeWidth="0.4"/>
+
+            {/* Side decorative dots */}
+            <circle cx="15" cy="58" r="2.5" fill="none" stroke="#F4F4F1" strokeWidth="0.8"/>
+            <circle cx="85" cy="58" r="2.5" fill="none" stroke="#F4F4F1" strokeWidth="0.8"/>
+
+            {/* Bottom dark banner */}
+            <path d="M 20,72 A 32,32 0 0,0 80,72 L 80,80 A 32,32 0 0,1 20,80 Z" fill="#111111"/>
+            <path d="M 20,72 A 32,32 0 0,0 80,72" fill="none" stroke="#F4F4F1" strokeWidth="0.7"/>
+            <path d="M 20,80 A 34,34 0 0,0 80,80" fill="none" stroke="#F4F4F1" strokeWidth="0.7"/>
+
+            {/* Curved top text */}
+            <text fill="#F4F4F1" fontSize="9" fontWeight="700" fontFamily="Georgia, serif" letterSpacing="2">
+              <textPath href="#topArc" startOffset="50%" textAnchor="middle">VENTURE MAP</textPath>
+            </text>
+
+            {/* Bottom banner text */}
+            <text fill="#F4F4F1" fontSize="6.5" fontWeight="700" fontFamily="monospace" letterSpacing="2.5">
+              <textPath href="#botArc" startOffset="50%" textAnchor="middle">WISHLIST</textPath>
+            </text>
           </svg>
           <div>
             <h1 className="text-lg md:text-2xl font-bold tracking-tighter text-[#1A1A1A] font-serif flex items-center gap-2">
