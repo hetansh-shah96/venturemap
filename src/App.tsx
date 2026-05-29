@@ -24,7 +24,9 @@ import {
   Plane,
   Coins,
   Luggage,
-  Map
+  Map,
+  Hotel,
+  Utensils
 } from "lucide-react";
 import WishlistMap from "./WishlistMap";
 
@@ -298,14 +300,49 @@ export default function App() {
       alert("Generate an AI Itinerary first to get smart recommendations!");
       return;
     }
-    const additions = generatedItinerary.packingEssentials.map((text: string, index: number) => ({
-      id: `p-ai-${Date.now()}-${index}`,
-      text: `${text} (AI Pick)`,
-      category: "AI Suggestions",
-      checked: false,
-    }));
-    setPackingItems([...packingItems, ...additions]);
-    alert("Injected smart items based on destination and activities!");
+    const validCategories = new Set(["Clothing", "Electronics", "Documents", "Toiletries", "Health & Safety", "Outdoor & Adventure"]);
+    const additions: any[] = [];
+
+    if (generatedItinerary.gearByCategory) {
+      Object.entries(generatedItinerary.gearByCategory).forEach(([cat, items]) => {
+        const category = validCategories.has(cat) ? cat : "AI Suggestions";
+        (items as string[]).forEach((text, idx) => {
+          additions.push({ id: `p-ai-${Date.now()}-${cat}-${idx}`, text, category, checked: false });
+        });
+      });
+    } else {
+      generatedItinerary.packingEssentials.forEach((text: string, idx: number) => {
+        additions.push({ id: `p-ai-${Date.now()}-${idx}`, text: `${text} (AI Pick)`, category: "AI Suggestions", checked: false });
+      });
+    }
+
+    setPackingItems((prev) => {
+      const existing = new Set(prev.map((i: any) => i.text.toLowerCase()));
+      return [...prev, ...additions.filter((i) => !existing.has(i.text.toLowerCase()))];
+    });
+    alert("Smart packing gear injected by category!");
+  };
+
+  // Import AI budget breakdown into expense ledger
+  const importItineraryBudget = () => {
+    if (!generatedItinerary?.budgetBreakdown) {
+      alert("Generate an itinerary first to get a budget estimate.");
+      return;
+    }
+    const parse = (s: string) => {
+      const nums = (s || "").match(/\d+/g);
+      if (!nums) return 0;
+      return nums.length >= 2 ? Math.round((parseInt(nums[0]) + parseInt(nums[1])) / 2) : parseInt(nums[0]);
+    };
+    const { accommodation, flightTransit, dining, activities } = generatedItinerary.budgetBreakdown;
+    const imports = [
+      { id: `e-ai-1`, category: "Accommodation", amount: parse(accommodation), note: `AI Estimate: ${accommodation}` },
+      { id: `e-ai-2`, category: "Flight / Transit", amount: parse(flightTransit), note: `AI Estimate: ${flightTransit}` },
+      { id: `e-ai-3`, category: "Dining", amount: parse(dining), note: `AI Estimate: ${dining}` },
+      { id: `e-ai-4`, category: "Activities", amount: parse(activities), note: `AI Estimate: ${activities}` },
+    ].filter((e) => e.amount > 0);
+    setExpenses(imports);
+    alert("Budget imported from AI itinerary estimate. Update amounts as you spend!");
   };
 
   // Expenses management
@@ -687,12 +724,12 @@ export default function App() {
 
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-[#1A1A1A] uppercase tracking-[0.2em]">Destination City</label>
+                    <label className="text-[10px] font-bold text-[#1A1A1A] uppercase tracking-[0.2em]">Trip / Destination</label>
                     <div className="relative">
                       <MapPin className="absolute left-3.5 top-3.5 w-4 h-4 text-[#1A1A1A]/50" />
                       <input
                         type="text"
-                        placeholder="e.g. Kyoto, Japan"
+                        placeholder="e.g. Italy — Rome, Vatican, Como"
                         value={plannerDestination}
                         onChange={(e) => setPlannerDestination(e.target.value)}
                         className="w-full pl-10 pr-4 py-3 bg-[#F4F4F1] border border-[#1A1A1A] rounded-none text-xs tracking-wide focus:outline-none text-[#1A1A1A] font-semibold"
@@ -700,7 +737,7 @@ export default function App() {
                       />
                     </div>
                     <div className="flex gap-1.5 flex-wrap pt-1.5">
-                      {["Kyoto", "Paris", "Bali", "Barcelona"].map((suggestion) => (
+                      {["Kyoto, Japan", "Italy — Rome, Vatican", "Bali", "Switzerland — Zurich, Lucerne, Interlaken"].map((suggestion) => (
                         <button
                           key={suggestion}
                           onClick={() => setPlannerDestination(suggestion)}
@@ -880,6 +917,15 @@ export default function App() {
                           </span>
                           <h3 className="text-3xl md:text-5xl font-light font-serif tracking-tighter">{generatedItinerary.destination}</h3>
                           <p className="text-xs text-[#F4F4F1]/70 max-w-xl font-sans tracking-wide">{generatedItinerary.description}</p>
+                          {generatedItinerary.cities && generatedItinerary.cities.length > 1 && (
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {generatedItinerary.cities.map((city: string, i: number) => (
+                                <span key={i} className="text-[9px] bg-[#F4F4F1]/10 border border-[#F4F4F1]/25 text-[#F4F4F1]/80 px-2 py-0.5 uppercase tracking-wider font-mono">
+                                  {city}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <div className="flex gap-2">
                           <button
@@ -918,7 +964,7 @@ export default function App() {
                     </div>
 
                     {/* Day Schedule timeline */}
-                    <div className="p-8 space-y-10 bg-[#F4F4F1]">
+                    <div className="p-8 space-y-10 bg-[#F4F4F1]" id="day-timeline">
                       {generatedItinerary.days.map((day: any, dIdx: number) => (
                         <div key={day.dayNumber} className="relative pl-8 sm:pl-12 border-l border-[#1A1A1A]/25 last:border-0 pb-8 last:pb-0">
                           {/* Square Badge marker */}
@@ -928,7 +974,14 @@ export default function App() {
 
                           <div className="space-y-4">
                             <div>
-                              <span className="text-[9px] text-[#1A1A1A]/40 font-mono tracking-widest block font-bold">SEQUENCE {day.dayNumber}</span>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[9px] text-[#1A1A1A]/40 font-mono tracking-widest font-bold">SEQUENCE {day.dayNumber}</span>
+                                {day.city && (
+                                  <span className="text-[9px] font-bold bg-[#1A1A1A] text-[#F4F4F1] px-2 py-0.5 uppercase tracking-wider font-mono">
+                                    {day.city}
+                                  </span>
+                                )}
+                              </div>
                               <h4 className="text-xl font-light text-[#1A1A1A] font-serif">
                                 Day {day.dayNumber}: <span className="italic">{day.title}</span>
                               </h4>
@@ -967,6 +1020,63 @@ export default function App() {
                         </div>
                       ))}
                     </div>
+
+                    {/* Hotels Section */}
+                    {generatedItinerary.hotels && generatedItinerary.hotels.length > 0 && (
+                      <div className="border-t border-[#1A1A1A]/10 p-8 space-y-6 bg-[#EAEAE5]">
+                        <div className="flex items-center gap-2 pb-3 border-b border-[#1A1A1A]/10">
+                          <Hotel className="w-4 h-4 text-[#1A1A1A]" />
+                          <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1A1A]">Recommended Hotels</h4>
+                          <span className="text-[9px] text-[#1A1A1A]/40 font-mono ml-auto">{generatedItinerary.hotels.length} options</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                          {generatedItinerary.hotels.map((hotel: any, i: number) => (
+                            <div key={i} className="bg-[#F4F4F1] border border-[#1A1A1A]/20 hover:border-[#1A1A1A]/50 p-5 space-y-2 transition-all">
+                              <div className="flex justify-between items-start gap-2">
+                                <h5 className="text-sm font-bold text-[#1A1A1A] uppercase tracking-tight leading-tight">{hotel.name}</h5>
+                                <span className="text-[9px] font-mono text-[#1A1A1A]/60 bg-[#EAEAE5] border border-[#1A1A1A]/10 px-2 py-0.5 whitespace-nowrap flex-shrink-0">{hotel.priceRange}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-[#1A1A1A]/50">
+                                <span>{hotel.type}</span>
+                                {hotel.city && <><span>·</span><span>{hotel.city}</span></>}
+                              </div>
+                              <p className="text-xs text-[#1A1A1A]/70 leading-relaxed">{hotel.highlight}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Restaurants Section */}
+                    {generatedItinerary.restaurants && generatedItinerary.restaurants.length > 0 && (
+                      <div className="border-t border-[#1A1A1A]/10 p-8 space-y-6 bg-[#F4F4F1]">
+                        <div className="flex items-center gap-2 pb-3 border-b border-[#1A1A1A]/10">
+                          <Utensils className="w-4 h-4 text-[#1A1A1A]" />
+                          <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1A1A]">Where to Eat</h4>
+                          <span className="text-[9px] text-[#1A1A1A]/40 font-mono ml-auto">{generatedItinerary.restaurants.length} picks</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                          {generatedItinerary.restaurants.map((r: any, i: number) => (
+                            <div key={i} className="bg-[#EAEAE5] border border-[#1A1A1A]/20 hover:border-[#1A1A1A]/50 p-5 space-y-2 transition-all">
+                              <div className="flex justify-between items-start gap-2">
+                                <h5 className="text-sm font-bold text-[#1A1A1A] uppercase tracking-tight leading-tight">{r.name}</h5>
+                                <span className="text-[9px] font-mono text-[#1A1A1A]/60 bg-[#F4F4F1] border border-[#1A1A1A]/10 px-2 py-0.5 whitespace-nowrap flex-shrink-0">{r.priceRange}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-[#1A1A1A]/50">
+                                <span>{r.cuisine}</span>
+                                {r.city && <><span>·</span><span>{r.city}</span></>}
+                              </div>
+                              {r.mustTry && (
+                                <div className="flex items-start gap-1.5 text-[10px] text-[#1A1A1A]/70 font-mono leading-relaxed pt-1">
+                                  <Sparkles className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                                  <span>{r.mustTry}</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -1029,7 +1139,7 @@ export default function App() {
               </div>
 
               {/* Category split render */}
-              {["Documents", "Clothing", "Electronics", "Toiletries", "AI Suggestions"].map((cat) => {
+              {["Documents", "Clothing", "Electronics", "Toiletries", "Health & Safety", "Outdoor & Adventure", "AI Suggestions"].map((cat) => {
                 const itemsInCat = packingItems.filter((i) => i.category === cat);
                 if (itemsInCat.length === 0) return null;
 
@@ -1107,7 +1217,7 @@ export default function App() {
               {/* Summary Stats */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-[#FAF9F6] p-4 rounded-none border border-[#1A1A1A]/20 text-left">
-                  <span className="text-[9px] text-[#1A1A1A]/55 uppercase font-bold tracking-[0.1em] block">Total Spent (USD)</span>
+                  <span className="text-[9px] text-[#1A1A1A]/55 uppercase font-bold tracking-[0.1em] block">Total Logged (USD)</span>
                   <p className="text-2xl font-light text-[#1A1A1A] mt-1 serif">${totalSpent.toLocaleString()}</p>
                 </div>
                 <div className="bg-[#FAF9F6] p-4 rounded-none border border-[#1A1A1A]/20 text-left">
@@ -1115,6 +1225,34 @@ export default function App() {
                   <p className="text-2xl font-light text-[#1A1A1A] mt-1 serif">{expenses.length} Records</p>
                 </div>
               </div>
+
+              {/* Itinerary Budget Reference */}
+              {generatedItinerary && (
+                <div className="bg-[#F4F4F1] p-4 rounded-none border border-[#1A1A1A]/30 space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#1A1A1A]/10">
+                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/60 flex items-center gap-1.5">
+                      <Sparkles className="w-3 h-3" /> AI Trip Estimate
+                    </span>
+                    <span className="text-xs font-bold font-mono text-[#1A1A1A]">{generatedItinerary.totalEstimatedCost}</span>
+                  </div>
+                  {generatedItinerary.budgetBreakdown && (
+                    <div className="space-y-1">
+                      {Object.entries(generatedItinerary.budgetBreakdown).map(([key, val]) => (
+                        <div key={key} className="flex justify-between text-[9px] font-mono">
+                          <span className="text-[#1A1A1A]/50 uppercase tracking-wide">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                          <span className="text-[#1A1A1A]/75 font-semibold">{val as string}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button
+                    onClick={importItineraryBudget}
+                    className="w-full bg-[#1A1A1A] hover:bg-[#2A2A2A] text-[#F4F4F1] font-bold text-[9px] uppercase tracking-[0.15em] py-2.5 transition-colors"
+                  >
+                    Import as Starting Budget
+                  </button>
+                </div>
+              )}
 
               {/* Custom SVG/Tailwind Budget Chart */}
               <div className="bg-[#F4F4F1] p-4 rounded-none border border-[#1A1A1A]/20 space-y-3">

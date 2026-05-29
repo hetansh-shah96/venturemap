@@ -40,10 +40,44 @@ Always respond with valid JSON matching exactly this structure:
   "description": "string",
   "bestSeason": "string",
   "totalEstimatedCost": "string",
+  "cities": ["string"],
+  "budgetBreakdown": {
+    "accommodation": "string",
+    "flightTransit": "string",
+    "dining": "string",
+    "activities": "string"
+  },
   "packingEssentials": ["string"],
+  "gearByCategory": {
+    "Clothing": ["string"],
+    "Electronics": ["string"],
+    "Documents": ["string"],
+    "Toiletries": ["string"],
+    "Health & Safety": ["string"],
+    "Outdoor & Adventure": ["string"]
+  },
+  "hotels": [
+    {
+      "name": "string",
+      "type": "string",
+      "priceRange": "string",
+      "city": "string",
+      "highlight": "string"
+    }
+  ],
+  "restaurants": [
+    {
+      "name": "string",
+      "cuisine": "string",
+      "priceRange": "string",
+      "city": "string",
+      "mustTry": "string"
+    }
+  ],
   "days": [
     {
       "dayNumber": 1,
+      "city": "string",
       "title": "string",
       "activities": [
         {
@@ -62,12 +96,20 @@ Always respond with valid JSON matching exactly this structure:
         {
           role: "user",
           content: `Generate a highly personalized, exquisite daily travel itinerary for a ${duration}-day trip to ${destination}.
+
+If the destination includes multiple cities (e.g. "Italy — Rome, Vatican, Lake Como"), distribute the days logically across all cities, set "cities" to list each city, and add a "city" field to each day. For single-city trips set "cities" to that one city.
+
 Travel preferences:
 - Budget Tier: ${budget || "Moderate"}
 - Experience Vibe: ${vibe || "Curated Mix"}
 - Companion Group: ${companion || "Solo travel"}
 
-Make the activities vivid, interactive, and distinct. Provide local secrets, precise timings, and logical route flows. Ensure names are authentic and provide practical travel tips for each location. Include 3-4 activities per day.`,
+Make the activities vivid, interactive, and distinct. Provide local secrets, precise timings, and logical route flows. Ensure names are authentic and provide practical travel tips for each location. Include 3-4 activities per day.
+
+For hotels: recommend 2-3 options per city at different price points (budget/mid/luxury).
+For restaurants: recommend 3-4 notable dining spots per city with diverse cuisine styles. Include the must-try dish.
+For gearByCategory: tailor suggestions specifically to this destination's climate, terrain, culture, and planned activities.
+For budgetBreakdown: provide realistic per-category cost ranges (e.g. "$400-600") for the full trip duration.`,
         },
       ],
       temperature: 0.8,
