@@ -1,4 +1,4 @@
-const CACHE = 'venturemap-v1';
+const CACHE = 'venturemap-v2';
 const PRECACHE = ['/', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', event => {
@@ -27,6 +27,8 @@ self.addEventListener('fetch', event => {
   // Static assets (JS, CSS, fonts, images): cache-first, update in background
   const isAsset = ['script', 'style', 'font', 'image'].includes(request.destination);
   if (isAsset) {
+    // Let cross-origin images (map tiles etc.) be handled natively by the browser
+    if (request.destination === 'image' && url.origin !== self.location.origin) return;
     event.respondWith(
       caches.match(request).then(cached => {
         const networkFetch = fetch(request).then(res => {

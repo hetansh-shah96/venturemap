@@ -22,3 +22,18 @@ body {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
 }
+
+/* Wishlist map — short on mobile so sidebar controls are visible, full-height on desktop */
+.wishlist-map-container {
+  height: 240px;
+}
+@media (min-width: 640px) {
+  .wishlist-map-container {
+    height: 320px;
+  }
+}
+@media (min-width: 1024px) {
+  .wishlist-map-container {
+    height: 100%;
+  }
+}

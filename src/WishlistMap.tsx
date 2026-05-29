@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from "react-leaflet";
 import L from "leaflet";
 import { Heart, Check, Plus, Trash2, Search, X, Globe } from "lucide-react";
 
@@ -68,6 +68,16 @@ const createMarkerIcon = (visited: boolean, priority: number) => {
     popupAnchor: [0, -36],
   });
 };
+
+// Forces Leaflet to recalculate tile layout after mount — fixes blank tiles on iOS
+function MapInvalidator() {
+  const map = useMap();
+  useEffect(() => {
+    const id = setTimeout(() => map.invalidateSize(), 200);
+    return () => clearTimeout(id);
+  }, [map]);
+  return null;
+}
 
 function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
   useMapEvents({
@@ -215,8 +225,8 @@ export default function WishlistMap() {
       */}
       <div className="border border-[#1A1A1A] flex flex-col lg:grid lg:grid-cols-12 lg:h-[72vh] lg:min-h-[520px] lg:overflow-hidden">
 
-        {/* Map */}
-        <div className="lg:col-span-8 relative" style={{ height: "46vmax", minHeight: "260px", maxHeight: "60vh" }}>
+        {/* Map — height controlled by .wishlist-map-container in index.css */}
+        <div className="lg:col-span-8 relative wishlist-map-container">
           {addMode && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-rose-600 text-white text-[10px] font-bold px-4 py-2.5 uppercase tracking-widest shadow-lg pointer-events-none whitespace-nowrap">
               Tap anywhere on the map to drop a pin
@@ -232,6 +242,7 @@ export default function WishlistMap() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
+            <MapInvalidator />
             <MapClickHandler onMapClick={handleMapClick} />
             {filteredPlaces.map((place) => (
               <Marker
