@@ -571,9 +571,19 @@ h2{font-size:18px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;
 .card-meta{font:10px/1 monospace;text-transform:uppercase;opacity:.45;margin-bottom:6px}
 .card p{font-size:11px;line-height:1.55;opacity:.75}
 footer{margin-top:40px;padding-top:14px;border-top:1px solid #1A1A1A;font:10px/1 monospace;opacity:.35;text-transform:uppercase;letter-spacing:.1em}
-@media print{body{padding:16px}.activity{break-inside:avoid}.day{break-inside:avoid}}
+@media print{
+  body{background:#fff;color:#000;padding:16px}
+  header{border-color:#000}
+  .activity{break-inside:avoid;background:#f5f5f5}
+  .day{break-inside:avoid}
+  .card{break-inside:avoid;background:#f5f5f5}
+  .city-chip,.time{background:#000;color:#fff}
+  h2{border-color:#000}
+  footer{border-color:#000}
+}
 @media(max-width:600px){.activities{grid-template-columns:1fr}.grid{grid-template-columns:1fr}}
 </style>
+<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},350);});</script>
 </head>
 <body>
 <header>
@@ -594,15 +604,13 @@ ${restHtml}
 </body>
 </html>`;
 
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${it.destination.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-itinerary.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const win = window.open("", "_blank");
+    if (!win) {
+      alert("Please allow pop-ups for this site to save the itinerary as PDF.");
+      return;
+    }
+    win.document.write(html);
+    win.document.close();
   };
 
   return (
@@ -617,8 +625,12 @@ ${restHtml}
       {/* Header — compact on mobile, full on desktop */}
       <header className="sticky top-0 z-40 bg-[#F4F4F1]/95 backdrop-blur-md border-b border-[#1A1A1A] py-3 md:py-6 px-4 md:px-12 flex items-center justify-between gap-4 transition-all">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 md:w-11 md:h-11 border border-[#1A1A1A] flex items-center justify-center font-bold text-xs bg-[#EAEAE5] shadow-inner flex-shrink-0">
-            VM
+          {/* Map-pin logo: dark circle with VM + downward point */}
+          <div className="flex-shrink-0 flex flex-col items-center">
+            <div className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-[#1A1A1A] flex items-center justify-center shadow-sm">
+              <span className="text-[#F4F4F1] font-bold text-[10px] md:text-[11px] tracking-wider">VM</span>
+            </div>
+            <div style={{ width: 0, height: 0, borderLeft: "7px solid transparent", borderRight: "7px solid transparent", borderTop: "9px solid #1A1A1A" }} />
           </div>
           <div>
             <h1 className="text-lg md:text-2xl font-bold tracking-tighter text-[#1A1A1A] font-serif flex items-center gap-2">
@@ -1107,7 +1119,7 @@ ${restHtml}
                             onClick={downloadItinerary}
                             className="bg-transparent hover:bg-[#F4F4F1]/10 text-[#F4F4F1] border border-[#F4F4F1]/40 hover:border-[#F4F4F1]/70 font-bold text-[10px] uppercase tracking-[0.15em] py-3 px-5 transition-all rounded-none"
                           >
-                            Download
+                            Save PDF
                           </button>
                         </div>
                       </div>
