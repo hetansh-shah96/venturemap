@@ -647,8 +647,11 @@ ${restHtml}
         </nav>
       </header>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#F4F4F1] border-t-2 border-[#1A1A1A] flex items-stretch">
+      {/* Mobile Bottom Navigation — pb accounts for iPhone home indicator */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#F4F4F1] border-t-2 border-[#1A1A1A] flex items-stretch"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
         {(["wishlist","explore","planner","checklist","album"] as const).map((tab, i) => {
           const icons = [Heart, Compass, Sparkles, Briefcase, Camera];
           const labels = ["Wishlist","Explore","Plan","Gear","Diary"];
@@ -660,7 +663,7 @@ ${restHtml}
               className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-[8px] font-bold uppercase tracking-[0.1em] transition-all ${
                 activeTab === tab
                   ? "bg-[#1A1A1A] text-[#F4F4F1]"
-                  : "text-[#1A1A1A]/60 hover:bg-[#1A1A1A]/5"
+                  : "text-[#1A1A1A]/60 active:bg-[#1A1A1A]/10"
               }`}
             >
               <Icon className="w-5 h-5" />
@@ -670,8 +673,8 @@ ${restHtml}
         })}
       </nav>
 
-      {/* Main Content Areas */}
-      <main className="max-w-7xl mx-auto p-4 md:p-8 pb-24 md:pb-8 animate-fade-in">
+      {/* Main Content Areas — extra bottom padding clears the nav + iPhone home bar */}
+      <main className="max-w-7xl mx-auto p-4 md:p-8 pb-32 md:pb-8 animate-fade-in">
         {/* SECTION 0: Travel Wishlist Map */}
         {activeTab === "wishlist" && (
           <div className="space-y-6" id="section-wishlist">
@@ -777,7 +780,7 @@ ${restHtml}
                         <img
                           src={dest.image}
                           alt={`${dest.city}, ${dest.country}`}
-                          className="w-full h-full object-cover grayscale opacity-90 group-hover:grayscale-0 transition-all duration-500"
+                          className="w-full h-full object-cover opacity-95 md:grayscale md:group-hover:grayscale-0 transition-all duration-500"
                           loading="lazy"
                         />
                         <div className="absolute top-4 right-4 bg-[#F4F4F1] border border-[#1A1A1A] px-3 py-1 text-[9px] font-bold text-[#1A1A1A] tracking-wider uppercase">
