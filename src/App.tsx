@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Compass,
   MapPin,
@@ -125,6 +125,10 @@ const saveToStorage = (key: string, value: any) => {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<"wishlist" | "explore" | "planner" | "checklist" | "album">("wishlist");
+
+  // Explore card: grayscale → colour effect (hover on desktop, tap on mobile)
+  const [litCard, setLitCard] = useState<string | null>(null);
+  const lastTouch = useRef(0); // debounce iOS fake mouse events after touchstart
 
   // PWA install prompt (Android/Chrome)
   const [installPrompt, setInstallPrompt] = useState<any>(null);
@@ -771,8 +775,18 @@ ${restHtml}
                 {curatedDestinations.map((dest) => (
                   <div
                     key={dest.id}
-                    className="bg-[#EAEAE5] border border-[#1A1A1A] rounded-none overflow-hidden hover:scale-[1.01] transition-all duration-300 flex flex-col justify-between group"
+                    className="bg-[#EAEAE5] border border-[#1A1A1A] rounded-none overflow-hidden hover:scale-[1.01] transition-all duration-300 flex flex-col justify-between"
                     id={`curated-${dest.city.toLowerCase()}`}
+                    onMouseEnter={() => {
+                      if (Date.now() - lastTouch.current > 600) setLitCard(dest.id);
+                    }}
+                    onMouseLeave={() => {
+                      if (Date.now() - lastTouch.current > 600) setLitCard(null);
+                    }}
+                    onTouchStart={() => {
+                      lastTouch.current = Date.now();
+                      setLitCard((prev) => (prev === dest.id ? null : dest.id));
+                    }}
                   >
                     <div>
                       {/* Image Frame */}
@@ -780,7 +794,9 @@ ${restHtml}
                         <img
                           src={dest.image}
                           alt={`${dest.city}, ${dest.country}`}
-                          className="w-full h-full object-cover opacity-95 md:grayscale md:group-hover:grayscale-0 transition-all duration-500"
+                          className={`w-full h-full object-cover transition-all duration-500 ${
+                            litCard === dest.id ? "grayscale-0 opacity-100" : "grayscale opacity-90"
+                          }`}
                           loading="lazy"
                         />
                         <div className="absolute top-4 right-4 bg-[#F4F4F1] border border-[#1A1A1A] px-3 py-1 text-[9px] font-bold text-[#1A1A1A] tracking-wider uppercase">
