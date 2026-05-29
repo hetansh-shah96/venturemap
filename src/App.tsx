@@ -625,13 +625,25 @@ ${restHtml}
       {/* Header — compact on mobile, full on desktop */}
       <header className="sticky top-0 z-[1001] bg-[#F4F4F1]/95 backdrop-blur-md border-b border-[#1A1A1A] py-3 md:py-6 px-4 md:px-12 flex items-center justify-between gap-4 transition-all">
         <div className="flex items-center gap-3">
-          {/* Map-pin logo: dark circle with VM + downward point */}
-          <div className="flex-shrink-0 flex flex-col items-center">
-            <div className="w-9 h-9 md:w-11 md:h-11 rounded-full bg-[#1A1A1A] flex items-center justify-center shadow-sm">
-              <span className="text-[#F4F4F1] font-bold text-[10px] md:text-[11px] tracking-wider">VM</span>
-            </div>
-            <div style={{ width: 0, height: 0, borderLeft: "7px solid transparent", borderRight: "7px solid transparent", borderTop: "9px solid #1A1A1A" }} />
-          </div>
+          {/* Globe + route icon — inline SVG matches the app icon aesthetic */}
+          <svg viewBox="0 0 44 44" className="w-9 h-9 md:w-11 md:h-11 flex-shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="44" height="44" rx="10" fill="#1A1A1A"/>
+            {/* Globe circle */}
+            <circle cx="26" cy="18" r="12" stroke="#F4F4F1" strokeWidth="1.4"/>
+            {/* Second smaller arc */}
+            <circle cx="14" cy="28" r="7" stroke="#F4F4F1" strokeWidth="1.0"/>
+            {/* Route line lower-left to upper-right */}
+            <line x1="5" y1="39" x2="39" y2="6" stroke="#F4F4F1" strokeWidth="3" strokeLinecap="round"/>
+            {/* Chevron cut-outs on the route */}
+            <polygon points="14,27 11,22 17,22" fill="#1A1A1A"/>
+            <polygon points="23,18 20,13 26,13" fill="#1A1A1A"/>
+            <polygon points="32,9 29,4 35,4" fill="#1A1A1A"/>
+            {/* Departure ring */}
+            <circle cx="5" cy="39" r="3" stroke="#F4F4F1" strokeWidth="1.3"/>
+            {/* Destination dot + ring */}
+            <circle cx="39" cy="6" r="2.8" fill="#F4F4F1"/>
+            <circle cx="39" cy="6" r="5" stroke="#F4F4F1" strokeWidth="1"/>
+          </svg>
           <div>
             <h1 className="text-lg md:text-2xl font-bold tracking-tighter text-[#1A1A1A] font-serif flex items-center gap-2">
               VENTUREMAP™
