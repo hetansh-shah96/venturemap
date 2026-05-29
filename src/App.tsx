@@ -432,96 +432,209 @@ export default function App() {
     handleGenerateItinerary(`${dest.city}, ${dest.country}`);
   };
 
+  // Download itinerary as a self-contained HTML file (printable as PDF)
+  const downloadItinerary = () => {
+    if (!generatedItinerary) return;
+    const it = generatedItinerary;
+
+    const daysHtml = it.days.map((day: any) => `
+      <div class="day">
+        <div class="day-header">
+          <div class="day-meta">
+            <span class="seq">Sequence ${day.dayNumber}</span>
+            ${day.city ? `<span class="city-tag">${day.city}</span>` : ""}
+          </div>
+          <h3>Day ${day.dayNumber}: ${day.title}</h3>
+        </div>
+        <div class="activities">
+          ${day.activities.map((act: any) => `
+            <div class="activity">
+              <div class="act-top">
+                <span class="time">${act.timeOfDay}</span>
+                ${act.cost ? `<span class="cost">${act.cost}</span>` : ""}
+              </div>
+              <h4>${act.activityName}</h4>
+              <p class="loc">${act.location}</p>
+              <p>${act.description}</p>
+              ${act.tips ? `<p class="tip">✦ ${act.tips}</p>` : ""}
+            </div>
+          `).join("")}
+        </div>
+      </div>`).join("");
+
+    const hotelsHtml = it.hotels?.length ? `
+      <div class="section">
+        <h2>Hotels</h2>
+        <div class="grid">
+          ${it.hotels.map((h: any) => `
+            <div class="card">
+              <div class="card-top"><strong>${h.name}</strong><span class="price">${h.priceRange}</span></div>
+              <div class="card-meta">${h.type}${h.city ? ` · ${h.city}` : ""}</div>
+              <p>${h.highlight}</p>
+            </div>`).join("")}
+        </div>
+      </div>` : "";
+
+    const restHtml = it.restaurants?.length ? `
+      <div class="section">
+        <h2>Where to Eat</h2>
+        <div class="grid">
+          ${it.restaurants.map((r: any) => `
+            <div class="card">
+              <div class="card-top"><strong>${r.name}</strong><span class="price">${r.priceRange}</span></div>
+              <div class="card-meta">${r.cuisine}${r.city ? ` · ${r.city}` : ""}</div>
+              ${r.mustTry ? `<p>✦ ${r.mustTry}</p>` : ""}
+            </div>`).join("")}
+        </div>
+      </div>` : "";
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${it.destination} — VentureMap Itinerary</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Georgia,serif;background:#F4F4F1;color:#1A1A1A;padding:32px;max-width:900px;margin:0 auto}
+header{border-bottom:2px solid #1A1A1A;padding-bottom:24px;margin-bottom:36px}
+.brand{font:11px/1 monospace;letter-spacing:.3em;text-transform:uppercase;opacity:.45}
+h1{font-size:46px;font-weight:300;margin:10px 0 6px}
+.desc{font-size:13px;opacity:.65;font-style:italic;margin-bottom:16px}
+.stats{display:flex;gap:28px;flex-wrap:wrap}
+.stat span{display:block;font:10px/1 monospace;text-transform:uppercase;opacity:.45;margin-bottom:3px}
+.stat strong{font-size:13px;font-family:monospace}
+.cities{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.city-chip{background:#1A1A1A;color:#F4F4F1;font:9px/1 monospace;text-transform:uppercase;padding:3px 8px;letter-spacing:.1em}
+.section{margin:40px 0}
+h2{font-size:18px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid #1A1A1A;padding-bottom:8px;margin-bottom:20px}
+.day{margin-bottom:44px}
+.day-meta{margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.seq{font:10px/1 monospace;text-transform:uppercase;letter-spacing:.2em;opacity:.35}
+.city-tag{background:#1A1A1A;color:#F4F4F1;font:9px/1 monospace;text-transform:uppercase;padding:2px 7px;letter-spacing:.1em}
+.day h3{font-size:22px;font-weight:300;font-style:italic;margin-top:4px}
+.activities{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.activity{background:#EAEAE5;padding:14px;border-left:3px solid #1A1A1A}
+.act-top{display:flex;justify-content:space-between;margin-bottom:8px}
+.time{background:#1A1A1A;color:#F4F4F1;font:9px/1 monospace;text-transform:uppercase;padding:2px 6px;letter-spacing:.1em}
+.cost{font:11px/1 monospace;opacity:.55}
+.activity h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.loc{font:10px/1 monospace;text-transform:uppercase;opacity:.45;margin-bottom:6px}
+.activity p{font-size:12px;line-height:1.65;opacity:.8}
+.tip{background:#fff;padding:7px 9px;margin-top:8px;font-size:11px;font-style:italic;opacity:.65}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.card{background:#EAEAE5;padding:14px}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:5px}
+.card-top strong{font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.price{font:10px/1 monospace;opacity:.55;background:#fff;padding:2px 6px;white-space:nowrap}
+.card-meta{font:10px/1 monospace;text-transform:uppercase;opacity:.45;margin-bottom:6px}
+.card p{font-size:11px;line-height:1.55;opacity:.75}
+footer{margin-top:40px;padding-top:14px;border-top:1px solid #1A1A1A;font:10px/1 monospace;opacity:.35;text-transform:uppercase;letter-spacing:.1em}
+@media print{body{padding:16px}.activity{break-inside:avoid}.day{break-inside:avoid}}
+@media(max-width:600px){.activities{grid-template-columns:1fr}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">VentureMap™ Artistic Edition · Travel Itinerary Export</div>
+  <h1>${it.destination}</h1>
+  <p class="desc">${it.description}</p>
+  <div class="stats">
+    <div class="stat"><span>Best Season</span><strong>${it.bestSeason}</strong></div>
+    <div class="stat"><span>Estimated Cost</span><strong>${it.totalEstimatedCost}</strong></div>
+    <div class="stat"><span>Duration</span><strong>${it.days.length} Days</strong></div>
+  </div>
+  ${it.cities?.length > 1 ? `<div class="cities">${it.cities.map((c: string) => `<span class="city-chip">${c}</span>`).join("")}</div>` : ""}
+</header>
+<div class="section"><h2>Day-by-Day Itinerary</h2>${daysHtml}</div>
+${hotelsHtml}
+${restHtml}
+<footer>Exported from VentureMap · venturemap.up.railway.app</footer>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${it.destination.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-itinerary.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-[#F4F4F1] text-[#1A1A1A] font-sans selection:bg-[#1A1A1A] selection:text-[#F4F4F1]" id="main-travel-app">
       
-      {/* Top Banner Alert / Artistic Vol. Number */}
-      <div className="bg-[#1A1A1A] text-[#F4F4F1] text-[10px] tracking-[0.3em] uppercase py-2 px-6 flex justify-between items-center font-mono">
+      {/* Top Banner — hidden on mobile to save space */}
+      <div className="hidden sm:flex bg-[#1A1A1A] text-[#F4F4F1] text-[10px] tracking-[0.3em] uppercase py-2 px-6 justify-between items-center font-mono">
         <span>VentureMap® Archive // Vol. 004</span>
-        <span className="hidden sm:inline">Zurich - Tokyo - Paris Symmetries</span>
+        <span>Zurich - Tokyo - Paris Symmetries</span>
       </div>
 
-      {/* Visual Header / Navigation Block */}
-      <header className="sticky top-0 z-40 bg-[#F4F4F1]/95 backdrop-blur-md border-b border-[#1A1A1A] py-6 px-6 md:px-12 flex flex-col lg:flex-row items-center justify-between gap-6 transition-all">
-        <div className="flex items-center gap-4">
-          <div className="w-11 h-11 border border-[#1A1A1A] flex items-center justify-center font-bold text-xs bg-[#EAEAE5] shadow-inner">
+      {/* Header — compact on mobile, full on desktop */}
+      <header className="sticky top-0 z-40 bg-[#F4F4F1]/95 backdrop-blur-md border-b border-[#1A1A1A] py-3 md:py-6 px-4 md:px-12 flex items-center justify-between gap-4 transition-all">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 md:w-11 md:h-11 border border-[#1A1A1A] flex items-center justify-center font-bold text-xs bg-[#EAEAE5] shadow-inner flex-shrink-0">
             VM
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tighter text-[#1A1A1A] font-serif flex items-center gap-2">
-              VENTUREMAP™ <span className="text-[9px] font-sans tracking-[0.25em] bg-[#1A1A1A] text-[#F4F4F1] px-1.5 py-0.5 uppercase font-bold">Artistic Edition</span>
+            <h1 className="text-lg md:text-2xl font-bold tracking-tighter text-[#1A1A1A] font-serif flex items-center gap-2">
+              VENTUREMAP™
+              <span className="hidden sm:inline text-[9px] font-sans tracking-[0.25em] bg-[#1A1A1A] text-[#F4F4F1] px-1.5 py-0.5 uppercase font-bold">Artistic Edition</span>
             </h1>
-            <p className="text-[9px] text-[#1A1A1A]/60 font-sans tracking-widest font-bold uppercase mt-0.5">Automated Daily Itineraries & Vibe Scrapbooks</p>
+            <p className="hidden md:block text-[9px] text-[#1A1A1A]/60 font-sans tracking-widest font-bold uppercase mt-0.5">Automated Daily Itineraries & Vibe Scrapbooks</p>
           </div>
         </div>
 
-        {/* Tab Selection */}
-        <nav className="flex flex-wrap items-center bg-transparent border border-[#1A1A1A] p-0 rounded-none">
-          <button
-            id="tab-btn-wishlist"
-            onClick={() => setActiveTab("wishlist")}
-            className={`flex items-center gap-1.5 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.15em] transition-all border-r border-[#1A1A1A] last:border-0 ${
-              activeTab === "wishlist"
-                ? "bg-[#1A1A1A] text-[#F4F4F1]"
-                : "text-[#1A1A1A] hover:bg-[#1A1A1A]/5"
-            }`}
-          >
-            <Heart className="w-3.5 h-3.5" />
-            Wishlist
-          </button>
-          <button
-            id="tab-btn-explore"
-            onClick={() => setActiveTab("explore")}
-            className={`flex items-center gap-1.5 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.15em] transition-all border-r border-[#1A1A1A] last:border-0 ${
-              activeTab === "explore"
-                ? "bg-[#1A1A1A] text-[#F4F4F1]"
-                : "text-[#1A1A1A] hover:bg-[#1A1A1A]/5"
-            }`}
-          >
-            <Compass className="w-3.5 h-3.5" />
-            Explore
-          </button>
-          <button
-            id="tab-btn-planner"
-            onClick={() => setActiveTab("planner")}
-            className={`flex items-center gap-1.5 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.15em] transition-all border-r border-[#1A1A1A] last:border-0 ${
-              activeTab === "planner"
-                ? "bg-[#1A1A1A] text-[#F4F4F1]"
-                : "text-[#1A1A1A] hover:bg-[#1A1A1A]/5"
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            Itineraries
-          </button>
-          <button
-            id="tab-btn-checklist"
-            onClick={() => setActiveTab("checklist")}
-            className={`flex items-center gap-1.5 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.15em] transition-all border-r border-[#1A1A1A] last:border-0 ${
-              activeTab === "checklist"
-                ? "bg-[#1A1A1A] text-[#F4F4F1]"
-                : "text-[#1A1A1A] hover:bg-[#1A1A1A]/5"
-            }`}
-          >
-            <Briefcase className="w-3.5 h-3.5" />
-            Gear & Pocket
-          </button>
-          <button
-            id="tab-btn-album"
-            onClick={() => setActiveTab("album")}
-            className={`flex items-center gap-1.5 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${
-              activeTab === "album"
-                ? "bg-[#1A1A1A] text-[#F4F4F1]"
-                : "text-[#1A1A1A] hover:bg-[#1A1A1A]/5"
-            }`}
-          >
-            <Camera className="w-3.5 h-3.5" />
-            Vibe Diary
-          </button>
+        {/* Desktop Tab Navigation — hidden on mobile (bottom nav used instead) */}
+        <nav className="hidden md:flex items-center bg-transparent border border-[#1A1A1A] p-0 rounded-none">
+          {(["wishlist","explore","planner","checklist","album"] as const).map((tab, i, arr) => {
+            const icons = [Heart, Compass, Sparkles, Briefcase, Camera];
+            const labels = ["Wishlist","Explore","Itineraries","Gear & Pocket","Vibe Diary"];
+            const Icon = icons[i];
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex items-center gap-1.5 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${i < arr.length - 1 ? "border-r border-[#1A1A1A]" : ""} ${
+                  activeTab === tab ? "bg-[#1A1A1A] text-[#F4F4F1]" : "text-[#1A1A1A] hover:bg-[#1A1A1A]/5"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {labels[i]}
+              </button>
+            );
+          })}
         </nav>
       </header>
 
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#F4F4F1] border-t-2 border-[#1A1A1A] flex items-stretch">
+        {(["wishlist","explore","planner","checklist","album"] as const).map((tab, i) => {
+          const icons = [Heart, Compass, Sparkles, Briefcase, Camera];
+          const labels = ["Wishlist","Explore","Plan","Gear","Diary"];
+          const Icon = icons[i];
+          return (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-[8px] font-bold uppercase tracking-[0.1em] transition-all ${
+                activeTab === tab
+                  ? "bg-[#1A1A1A] text-[#F4F4F1]"
+                  : "text-[#1A1A1A]/60 hover:bg-[#1A1A1A]/5"
+              }`}
+            >
+              <Icon className="w-5 h-5" />
+              {labels[i]}
+            </button>
+          );
+        })}
+      </nav>
+
       {/* Main Content Areas */}
-      <main className="max-w-7xl mx-auto p-4 md:p-8 animate-fade-in">
+      <main className="max-w-7xl mx-auto p-4 md:p-8 pb-24 md:pb-8 animate-fade-in">
         {/* SECTION 0: Travel Wishlist Map */}
         {activeTab === "wishlist" && (
           <div className="space-y-6" id="section-wishlist">
@@ -927,12 +1040,18 @@ export default function App() {
                             </div>
                           )}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <button
                             onClick={saveCurrentItinerary}
                             className="bg-[#F4F4F1] hover:bg-[#EAEAE5] text-[#1A1A1A] font-bold text-[10px] uppercase tracking-[0.15em] py-3 px-5 transition-all rounded-none"
                           >
-                            Save Itinerary
+                            Save
+                          </button>
+                          <button
+                            onClick={downloadItinerary}
+                            className="bg-transparent hover:bg-[#F4F4F1]/10 text-[#F4F4F1] border border-[#F4F4F1]/40 hover:border-[#F4F4F1]/70 font-bold text-[10px] uppercase tracking-[0.15em] py-3 px-5 transition-all rounded-none"
+                          >
+                            Download
                           </button>
                         </div>
                       </div>
@@ -1508,7 +1627,7 @@ export default function App() {
       </main>
 
       {/* Aesthetic Site Footer */}
-      <footer className="bg-[#1A1A1A] text-[#F4F4F1]/65 text-[9px] py-10 text-center border-t border-[#1A1A1A] mt-24 font-mono uppercase tracking-wider">
+      <footer className="bg-[#1A1A1A] text-[#F4F4F1]/65 text-[9px] py-10 text-center border-t border-[#1A1A1A] mt-16 mb-16 md:mb-0 font-mono uppercase tracking-wider">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="font-bold">
             VentureMap Travel Concierge &bull; Powered by Groq AI Cognition &bull; Full-Stack React Express
