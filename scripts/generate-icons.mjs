@@ -30,38 +30,77 @@ function chunk(type, data) {
   return Buffer.concat([uint32BE(data.length), t, data, uint32BE(crc32(crcBuf))]);
 }
 
+/**
+ * Globe icon: black background, white filled circle with a latitude/longitude
+ * grid drawn as black lines — orthographic projection so longitude arcs curve
+ * naturally from pole to pole.
+ *
+ * Grid lines:
+ *   - 7 horizontal latitude bands  (equator + 3 pairs at ±27 / ±54 / ±81 % of radius)
+ *   - 1 straight central meridian
+ *   - 2 curved longitude arcs at sin(±37°) ≈ ±0.60 of radius from centre
+ */
 function makeIcon(size) {
-  const BG  = [26,  26,  26,  255]; // #1A1A1A
-  const FG  = [244, 244, 241, 255]; // #F4F4F1
+  const BG    = [26, 26, 26, 255];    // #1A1A1A — background & grid lines
+  const WHITE = [244, 244, 241, 255]; // #F4F4F1 — globe fill
 
-  const border = Math.max(2, Math.round(size * 0.055)); // outer frame thickness
-  const inner  = Math.round(size * 0.18);               // inner padding for "VM" box
+  const cx = size / 2;
+  const cy = size / 2;
+  const globeR = Math.round(size * 0.42);            // globe occupies ~84% of icon
+  const thick  = Math.max(2, Math.round(size * 0.016)); // grid line thickness
 
-  // Row of raw RGBA pixels
-  const row = Buffer.alloc(size * 4);
+  // Latitude line centres (as fraction of globeR, positive = south on screen)
+  const latY = [0, 0.27, 0.54, 0.81, -0.27, -0.54, -0.81]
+    .map(f => cy + globeR * f);
+
+  // Curved longitude arcs: sin(λ) = ±0.60  →  λ ≈ ±37°
+  // Formula: x_arc = cx + sin(λ) * sqrt(R² − dy²)  (orthographic meridian)
+  const lonSins = [0.60, -0.60];
 
   const scanlines = Buffer.alloc(size * (1 + size * 4));
 
   for (let y = 0; y < size; y++) {
-    // Decide colour per pixel
+    const rowBase = y * (1 + size * 4);
+    scanlines[rowBase] = 0; // PNG filter: None
+
     for (let x = 0; x < size; x++) {
-      const onOuterBorder = x < border || x >= size - border || y < border || y >= size - border;
-      // Inner VM box outline
-      const bx = inner, by = Math.round(size * 0.30);
-      const bw = size - inner * 2, bh = Math.round(size * 0.40);
-      const boxBorder = Math.max(1, Math.round(size * 0.025));
-      const onBox = x >= bx && x < bx + bw && y >= by && y < by + bh
-                 && (x < bx + boxBorder || x >= bx + bw - boxBorder
-                  || y < by + boxBorder || y >= by + bh - boxBorder);
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
 
-      const [r, g, b, a] = (onOuterBorder || onBox) ? FG : BG;
-      const i = x * 4;
-      row[i] = r; row[i+1] = g; row[i+2] = b; row[i+3] = a;
+      let isGlobe = dist <= globeR;
+      let isLine  = false;
+
+      if (isGlobe) {
+        // Latitude lines
+        for (const ly of latY) {
+          if (Math.abs(y - ly) < thick / 2) { isLine = true; break; }
+        }
+
+        if (!isLine) {
+          // Central meridian (straight vertical through cx)
+          if (Math.abs(dx) < thick / 2) { isLine = true; }
+        }
+
+        if (!isLine) {
+          // Curved longitude arcs
+          const latTerm = globeR * globeR - dy * dy;
+          if (latTerm >= 0) {
+            const spread = Math.sqrt(latTerm);
+            for (const sinL of lonSins) {
+              if (Math.abs(x - (cx + sinL * spread)) < thick / 2) {
+                isLine = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      const [r, g, b, a] = (isGlobe && !isLine) ? WHITE : BG;
+      const base = rowBase + 1 + x * 4;
+      scanlines[base] = r; scanlines[base + 1] = g; scanlines[base + 2] = b; scanlines[base + 3] = a;
     }
-
-    const offset = y * (1 + size * 4);
-    scanlines[offset] = 0; // filter: None
-    row.copy(scanlines, offset + 1);
   }
 
   const ihdr = Buffer.alloc(13);
