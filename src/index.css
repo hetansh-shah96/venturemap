@@ -11,6 +11,7 @@ body {
   background-color: #F4F4F1;
   color: #1A1A1A;
   font-family: var(--font-sans);
+  padding-top: env(safe-area-inset-top);
 }
 
 .asym-border {
