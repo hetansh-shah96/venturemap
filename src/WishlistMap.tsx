@@ -26,6 +26,12 @@ const CATEGORY_EMOJI: Record<string, string> = {
   other: "📍",
 };
 
+const PRIORITY_COLOR: Record<number, string> = {
+  3: "#e11d48",
+  2: "#f97316",
+  1: "#6366f1",
+};
+
 const DEFAULT_PLACES: WishlistPlace[] = [
   { id: "w-1", name: "Santorini", country: "Greece", lat: 36.3932, lng: 25.4615, category: "island", notes: "Sunsets over the caldera 🌅", visited: false, priority: 3, addedAt: "2026-01-01T00:00:00Z" },
   { id: "w-2", name: "Kyoto", country: "Japan", lat: 35.0116, lng: 135.7681, category: "temple", notes: "Cherry blossoms in spring 🌸", visited: false, priority: 3, addedAt: "2026-01-01T00:00:00Z" },
@@ -37,28 +43,35 @@ const DEFAULT_PLACES: WishlistPlace[] = [
   { id: "w-8", name: "Northern Lights, Tromsø", country: "Norway", lat: 69.6489, lng: 18.9551, category: "nature", notes: "Aurora borealis under the stars 🌌", visited: false, priority: 3, addedAt: "2026-01-01T00:00:00Z" },
 ];
 
+// iOS-safe marker: use absolute positioning instead of flexbox inside a transform
 const createMarkerIcon = (visited: boolean, priority: number) => {
-  const color = visited ? "#16a34a" : priority === 3 ? "#e11d48" : priority === 2 ? "#f97316" : "#6366f1";
+  const color = visited ? "#16a34a" : (PRIORITY_COLOR[priority] ?? "#6366f1");
   const inner = visited ? "✓" : "♥";
   return L.divIcon({
     className: "",
     html: `<div style="
-      width:30px;height:30px;background:${color};
-      border:2.5px solid white;border-radius:50% 50% 50% 0;
-      transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,.35);
-      display:flex;align-items:center;justify-content:center;
-    "><span style="transform:rotate(45deg);font-size:12px;color:white;line-height:1;font-weight:bold;">${inner}</span></div>`,
-    iconSize: [30, 30],
-    iconAnchor: [15, 30],
-    popupAnchor: [0, -34],
+      width:32px;height:32px;background:${color};
+      border:3px solid rgba(255,255,255,0.95);
+      border-radius:50% 50% 50% 0;
+      -webkit-transform:rotate(-45deg);transform:rotate(-45deg);
+      box-shadow:0 3px 10px rgba(0,0,0,0.4);
+      position:relative;
+    "><span style="
+      position:absolute;top:50%;left:50%;
+      -webkit-transform:translate(-50%,-50%) rotate(45deg);
+      transform:translate(-50%,-50%) rotate(45deg);
+      font-size:13px;color:white;font-weight:bold;line-height:1;
+      text-shadow:0 1px 2px rgba(0,0,0,0.3);
+    ">${inner}</span></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -36],
   });
 };
 
 function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
   useMapEvents({
-    click(e) {
-      onMapClick(e.latlng.lat, e.latlng.lng);
-    },
+    click(e) { onMapClick(e.latlng.lat, e.latlng.lng); },
   });
   return null;
 }
@@ -195,16 +208,18 @@ export default function WishlistMap() {
         ))}
       </div>
 
-      {/* Main layout: map + sidebar */}
-      <div
-        className="grid grid-cols-1 lg:grid-cols-12 border border-[#1A1A1A] overflow-hidden"
-        style={{ height: "72vh", minHeight: "520px" }}
-      >
+      {/*
+        Layout:
+        - Mobile: stacked, map fixed height, sidebar scrolls naturally (no clipping)
+        - Desktop: side-by-side in a fixed-height container with internal scroll on places list
+      */}
+      <div className="border border-[#1A1A1A] flex flex-col lg:grid lg:grid-cols-12 lg:h-[72vh] lg:min-h-[520px] lg:overflow-hidden">
+
         {/* Map */}
-        <div className="lg:col-span-8 relative" style={{ minHeight: "320px" }}>
+        <div className="lg:col-span-8 relative" style={{ height: "46vmax", minHeight: "260px", maxHeight: "60vh" }}>
           {addMode && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-rose-600 text-white text-[10px] font-bold px-4 py-2 uppercase tracking-widest shadow-lg pointer-events-none">
-              Click anywhere on the map to drop a pin
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-rose-600 text-white text-[10px] font-bold px-4 py-2.5 uppercase tracking-widest shadow-lg pointer-events-none whitespace-nowrap">
+              Tap anywhere on the map to drop a pin
             </div>
           )}
           <MapContainer
@@ -224,19 +239,43 @@ export default function WishlistMap() {
                 position={[place.lat, place.lng]}
                 icon={createMarkerIcon(place.visited, place.priority)}
               >
+                {/* Popup uses 100% inline styles — avoids Tailwind scoping issues on iOS Safari */}
                 <Popup>
-                  <div className="min-w-[160px] text-sm">
-                    <div className="font-bold text-base">
+                  <div style={{ minWidth: "170px", fontFamily: "system-ui, sans-serif", fontSize: "13px" }}>
+                    <div style={{ fontWeight: "700", fontSize: "15px", marginBottom: "3px", color: "#111" }}>
                       {CATEGORY_EMOJI[place.category]} {place.name}
                     </div>
-                    <div className="text-gray-500 text-xs">{place.country}</div>
-                    {place.notes && <div className="text-xs mt-1 italic text-gray-600">{place.notes}</div>}
-                    <div className="text-xs mt-1">{"♥".repeat(place.priority)}</div>
+                    {place.country && (
+                      <div style={{ color: "#777", fontSize: "11px", marginBottom: "4px" }}>{place.country}</div>
+                    )}
+                    {place.notes && (
+                      <div style={{ fontSize: "11px", fontStyle: "italic", color: "#555", marginBottom: "6px" }}>
+                        {place.notes}
+                      </div>
+                    )}
+                    <div style={{ fontSize: "14px", marginBottom: "8px" }}>
+                      <span style={{ color: place.visited ? "#16a34a" : (PRIORITY_COLOR[place.priority] ?? "#6366f1") }}>
+                        {"♥".repeat(place.priority)}
+                      </span>
+                      <span style={{ color: "#ddd" }}>{"♥".repeat(3 - place.priority)}</span>
+                    </div>
+                    {place.visited && (
+                      <div style={{ fontSize: "10px", background: "#dcfce7", color: "#15803d", padding: "2px 6px", display: "inline-block", fontWeight: "700", marginBottom: "6px", borderRadius: "2px" }}>
+                        ✓ VISITED
+                      </div>
+                    )}
                     <button
                       onClick={() => toggleVisited(place.id)}
-                      className="mt-2 text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded w-full text-left transition-colors"
+                      style={{
+                        display: "block", width: "100%", textAlign: "left",
+                        fontSize: "11px", fontWeight: "600",
+                        background: place.visited ? "#fef2f2" : "#f0fdf4",
+                        color: place.visited ? "#dc2626" : "#15803d",
+                        border: `1px solid ${place.visited ? "#fca5a5" : "#86efac"}`,
+                        padding: "5px 8px", cursor: "pointer", borderRadius: "3px",
+                      }}
                     >
-                      {place.visited ? "↩ Mark as wishlist" : "✓ Mark as visited"}
+                      {place.visited ? "↩ Move back to wishlist" : "✓ Mark as visited"}
                     </button>
                   </div>
                 </Popup>
@@ -245,18 +284,16 @@ export default function WishlistMap() {
           </MapContainer>
         </div>
 
-        {/* Sidebar */}
-        <div
-          className="lg:col-span-4 border-t lg:border-t-0 lg:border-l border-[#1A1A1A] flex flex-col bg-[#F4F4F1]"
-          style={{ overflow: "hidden" }}
-        >
-          {/* Sidebar controls */}
-          <div className="p-4 border-b border-[#1A1A1A] space-y-3 flex-shrink-0 bg-[#F4F4F1]">
+        {/* Sidebar
+            Mobile: natural height (no overflow hidden), shows full form
+            Desktop: fills remaining height, places list scrolls internally */}
+        <div className="lg:col-span-4 border-t lg:border-t-0 lg:border-l border-[#1A1A1A] flex flex-col bg-[#F4F4F1] lg:overflow-hidden">
+
+          {/* Controls — sticky on mobile so they stay visible while scrolling places */}
+          <div className="p-4 border-b border-[#1A1A1A] space-y-3 flex-shrink-0 bg-[#F4F4F1] sticky top-0 lg:static z-10">
             <div className="flex items-center gap-2">
               <Heart className="w-4 h-4 text-rose-600" />
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1A1A]">
-                Our Places
-              </h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1A1A]">Our Places</h3>
             </div>
 
             {/* Search geocoder */}
@@ -267,32 +304,28 @@ export default function WishlistMap() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="flex-1 px-2.5 py-2 bg-[#EAEAE5] border border-[#1A1A1A] text-[10px] uppercase tracking-wide focus:outline-none font-semibold text-[#1A1A1A] placeholder-[#1A1A1A]/40"
+                className="flex-1 px-3 py-2.5 bg-[#EAEAE5] border border-[#1A1A1A] text-[11px] uppercase tracking-wide focus:outline-none font-semibold text-[#1A1A1A] placeholder-[#1A1A1A]/40"
               />
               <button
                 onClick={handleSearch}
                 disabled={isSearching}
-                className="bg-[#1A1A1A] text-[#F4F4F1] px-2.5 py-2 hover:bg-[#2A2A2A] transition-colors disabled:opacity-50 flex items-center justify-center"
+                className="bg-[#1A1A1A] text-[#F4F4F1] px-3 py-2.5 hover:bg-[#2A2A2A] transition-colors disabled:opacity-50 flex items-center justify-center min-w-[44px]"
               >
-                {isSearching ? (
-                  <span className="text-[9px] font-mono">...</span>
-                ) : (
-                  <Search className="w-3.5 h-3.5" />
-                )}
+                {isSearching ? <span className="text-[9px] font-mono">...</span> : <Search className="w-4 h-4" />}
               </button>
             </div>
 
             {/* Pin on map button */}
             <button
               onClick={() => setAddMode(!addMode)}
-              className={`w-full text-[9px] font-bold uppercase tracking-wider py-2 px-3 border transition-all flex items-center justify-center gap-1.5 ${
+              className={`w-full text-[10px] font-bold uppercase tracking-wider py-3 px-3 border transition-all flex items-center justify-center gap-1.5 ${
                 addMode
                   ? "bg-rose-600 text-white border-rose-600"
                   : "border-[#1A1A1A] text-[#1A1A1A] hover:bg-[#1A1A1A]/5"
               }`}
             >
-              <Plus className="w-3 h-3" />
-              {addMode ? "Cancel — click map to pin" : "Drop pin on map"}
+              <Plus className="w-3.5 h-3.5" />
+              {addMode ? "Cancel — tap map to pin" : "Drop pin on map"}
             </button>
 
             {/* Filter tabs */}
@@ -301,7 +334,7 @@ export default function WishlistMap() {
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`flex-1 py-1.5 text-[9px] font-bold uppercase tracking-wider transition-all ${
+                  className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-all ${
                     filter === f ? "bg-[#1A1A1A] text-[#F4F4F1]" : "text-[#1A1A1A] hover:bg-[#1A1A1A]/5"
                   }`}
                 >
@@ -311,15 +344,13 @@ export default function WishlistMap() {
             </div>
           </div>
 
-          {/* Add place form */}
+          {/* Add place form — expanded, fully visible on mobile */}
           {showAddForm && (
-            <div className="p-4 border-b border-[#1A1A1A] bg-[#EAEAE5] flex-shrink-0 space-y-2.5">
+            <div className="p-4 border-b border-[#1A1A1A] bg-[#EAEAE5] flex-shrink-0 space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#1A1A1A]">
-                  Add Place
-                </span>
-                <button onClick={cancelAdd} className="text-[#1A1A1A]/50 hover:text-[#1A1A1A]">
-                  <X className="w-4 h-4" />
+                <span className="text-[11px] font-black uppercase tracking-widest text-[#1A1A1A]">Add Place</span>
+                <button onClick={cancelAdd} className="text-[#1A1A1A]/50 hover:text-[#1A1A1A] p-1">
+                  <X className="w-5 h-5" />
                 </button>
               </div>
               <input
@@ -327,26 +358,22 @@ export default function WishlistMap() {
                 placeholder="Place name *"
                 value={formData.name}
                 onChange={(e) => setFormData((f) => ({ ...f, name: e.target.value }))}
-                className="w-full px-2.5 py-2 bg-[#F4F4F1] border border-[#1A1A1A] text-[10px] uppercase tracking-wide focus:outline-none font-semibold text-[#1A1A1A]"
+                className="w-full px-3 py-3 bg-[#F4F4F1] border border-[#1A1A1A] text-[11px] uppercase tracking-wide focus:outline-none font-semibold text-[#1A1A1A]"
               />
               <input
                 type="text"
                 placeholder="Country"
                 value={formData.country}
                 onChange={(e) => setFormData((f) => ({ ...f, country: e.target.value }))}
-                className="w-full px-2.5 py-2 bg-[#F4F4F1] border border-[#1A1A1A] text-[10px] uppercase tracking-wide focus:outline-none font-semibold text-[#1A1A1A]"
+                className="w-full px-3 py-3 bg-[#F4F4F1] border border-[#1A1A1A] text-[11px] uppercase tracking-wide focus:outline-none font-semibold text-[#1A1A1A]"
               />
               <select
                 value={formData.category}
-                onChange={(e) =>
-                  setFormData((f) => ({ ...f, category: e.target.value as WishlistPlace["category"] }))
-                }
-                className="w-full px-2.5 py-2 bg-[#F4F4F1] border border-[#1A1A1A] text-[10px] uppercase tracking-wide focus:outline-none font-semibold text-[#1A1A1A]"
+                onChange={(e) => setFormData((f) => ({ ...f, category: e.target.value as WishlistPlace["category"] }))}
+                className="w-full px-3 py-3 bg-[#F4F4F1] border border-[#1A1A1A] text-[11px] uppercase tracking-wide focus:outline-none font-semibold text-[#1A1A1A]"
               >
                 {Object.entries(CATEGORY_EMOJI).map(([k, v]) => (
-                  <option key={k} value={k}>
-                    {v} {k}
-                  </option>
+                  <option key={k} value={k}>{v} {k}</option>
                 ))}
               </select>
               <input
@@ -354,19 +381,15 @@ export default function WishlistMap() {
                 placeholder="Notes (optional)"
                 value={formData.notes}
                 onChange={(e) => setFormData((f) => ({ ...f, notes: e.target.value }))}
-                className="w-full px-2.5 py-2 bg-[#F4F4F1] border border-[#1A1A1A] text-[10px] tracking-wide focus:outline-none font-semibold text-[#1A1A1A]"
+                className="w-full px-3 py-3 bg-[#F4F4F1] border border-[#1A1A1A] text-[11px] tracking-wide focus:outline-none font-semibold text-[#1A1A1A]"
               />
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[#1A1A1A]/60">
-                  Dream level:
-                </span>
+              <div className="flex items-center gap-3 py-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#1A1A1A]/60">Dream level:</span>
                 {([1, 2, 3] as const).map((p) => (
                   <button
                     key={p}
                     onClick={() => setFormData((f) => ({ ...f, priority: p }))}
-                    className={`text-lg transition-all leading-none ${
-                      formData.priority >= p ? "text-rose-600" : "text-[#1A1A1A]/20"
-                    }`}
+                    className={`text-2xl transition-all leading-none ${formData.priority >= p ? "text-rose-600" : "text-[#1A1A1A]/20"}`}
                   >
                     ♥
                   </button>
@@ -375,15 +398,15 @@ export default function WishlistMap() {
               <button
                 onClick={handleAddPlace}
                 disabled={!formData.name.trim()}
-                className="w-full bg-[#1A1A1A] text-[#F4F4F1] py-2.5 text-[9px] font-bold uppercase tracking-widest hover:bg-[#2A2A2A] transition-colors disabled:opacity-40"
+                className="w-full bg-[#1A1A1A] text-[#F4F4F1] py-3.5 text-[10px] font-bold uppercase tracking-widest hover:bg-[#2A2A2A] transition-colors disabled:opacity-40"
               >
                 Add to Our Wishlist
               </button>
             </div>
           )}
 
-          {/* Places list */}
-          <div className="flex-1 overflow-y-auto">
+          {/* Places list — scrolls inside the sidebar on desktop; expands naturally on mobile */}
+          <div className="lg:flex-1 lg:overflow-y-auto">
             {filteredPlaces.length === 0 ? (
               <div className="p-6 text-center">
                 <Globe className="w-8 h-8 text-[#1A1A1A]/20 mx-auto mb-2" />
@@ -395,10 +418,7 @@ export default function WishlistMap() {
               filteredPlaces
                 .sort((a, b) => b.priority - a.priority)
                 .map((place) => (
-                  <div
-                    key={place.id}
-                    className="p-3 border-b border-[#1A1A1A]/10 hover:bg-[#EAEAE5] transition-all"
-                  >
+                  <div key={place.id} className="p-3 border-b border-[#1A1A1A]/10 hover:bg-[#EAEAE5] transition-all active:bg-[#EAEAE5]">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -416,12 +436,12 @@ export default function WishlistMap() {
                           </div>
                         )}
                         {place.notes && (
-                          <div className="text-[9px] text-[#1A1A1A]/60 mt-0.5 italic truncate">
-                            {place.notes}
-                          </div>
+                          <div className="text-[9px] text-[#1A1A1A]/60 mt-0.5 italic truncate">{place.notes}</div>
                         )}
-                        <div className="text-[10px] mt-0.5 leading-none">
-                          <span className="text-rose-500">{"♥".repeat(place.priority)}</span>
+                        <div className="text-[11px] mt-1 leading-none">
+                          <span style={{ color: place.visited ? "#16a34a" : (PRIORITY_COLOR[place.priority] ?? "#6366f1") }}>
+                            {"♥".repeat(place.priority)}
+                          </span>
                           <span className="text-[#1A1A1A]/15">{"♥".repeat(3 - place.priority)}</span>
                         </div>
                       </div>
@@ -429,20 +449,20 @@ export default function WishlistMap() {
                         <button
                           onClick={() => toggleVisited(place.id)}
                           title={place.visited ? "Move to wishlist" : "Mark as visited"}
-                          className={`p-1 border transition-all ${
+                          className={`p-1.5 border transition-all min-w-[32px] min-h-[32px] flex items-center justify-center ${
                             place.visited
                               ? "bg-green-600 text-white border-green-600"
                               : "border-[#1A1A1A]/30 text-[#1A1A1A]/40 hover:border-green-600 hover:text-green-600"
                           }`}
                         >
-                          <Check className="w-3 h-3" />
+                          <Check className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => deletePlace(place.id)}
                           title="Remove place"
-                          className="p-1 text-[#1A1A1A]/30 hover:text-red-600 transition-colors"
+                          className="p-1.5 text-[#1A1A1A]/30 hover:text-red-600 transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center"
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -454,7 +474,7 @@ export default function WishlistMap() {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 text-[9px] font-mono uppercase tracking-widest text-[#1A1A1A]/50">
+      <div className="flex flex-wrap gap-x-4 gap-y-2 text-[9px] font-mono uppercase tracking-widest text-[#1A1A1A]/50">
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-3 h-3 rounded-full bg-rose-600"></span> High dream (♥♥♥)
         </span>
