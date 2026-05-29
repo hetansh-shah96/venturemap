@@ -3,18 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-    <title>VentureMap — Our Travel Wishlist</title>
-    <meta name="description" content="A shared travel wishlist and adventure companion for couples who love to explore the world together." />
+    <title>VentureMap — Travel Planner</title>
+    <meta name="description" content="AI travel itineraries, wishlist map, gear checklist and vibe diary." />
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#1A1A1A" />
+    <!-- iOS PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="VentureMap" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
+    <!-- Open Graph -->
+    <meta property="og:title" content="VentureMap — Travel Planner" />
+    <meta property="og:description" content="AI itineraries, wishlist map, gear & budget tracker." />
+    <meta property="og:type" content="website" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function (err) {
+            console.warn('Service worker registration failed:', err);
+          });
+        });
+      }
+    </script>
   </body>
 </html>

@@ -1,21 +1,46 @@
 {
-  "name": "VentureMap — Our Travel Wishlist",
+  "name": "VentureMap — Travel Planner",
   "short_name": "VentureMap",
-  "description": "A shared travel wishlist and adventure companion for couples.",
+  "description": "AI travel itineraries, wishlist map, gear checklist and vibe diary. Works offline.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#F4F4F1",
   "theme_color": "#1A1A1A",
+  "categories": ["travel", "lifestyle", "productivity"],
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Plan a Trip",
+      "short_name": "Plan",
+      "url": "/?tab=planner",
+      "description": "Open the AI itinerary builder"
+    },
+    {
+      "name": "My Wishlist",
+      "short_name": "Wishlist",
+      "url": "/?tab=wishlist",
+      "description": "View your travel wishlist map"
+    },
+    {
+      "name": "Gear & Pocket",
+      "short_name": "Gear",
+      "url": "/?tab=checklist",
+      "description": "Packing list and budget tracker"
     }
   ]
 }

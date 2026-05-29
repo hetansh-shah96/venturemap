@@ -126,6 +126,43 @@ const saveToStorage = (key: string, value: any) => {
 export default function App() {
   const [activeTab, setActiveTab] = useState<"wishlist" | "explore" | "planner" | "checklist" | "album">("wishlist");
 
+  // PWA install prompt (Android/Chrome)
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  // iOS "Add to Home Screen" hint
+  const [showIOSHint, setShowIOSHint] = useState(false);
+
+  useEffect(() => {
+    // Read ?tab= from shortcut URLs
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    const valid = ["wishlist", "explore", "planner", "checklist", "album"];
+    if (tab && valid.includes(tab)) setActiveTab(tab as any);
+
+    // Android/Chrome install prompt
+    const handler = (e: any) => { e.preventDefault(); setInstallPrompt(e); };
+    window.addEventListener("beforeinstallprompt", handler);
+
+    // iOS hint: show once if not already installed
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = (navigator as any).standalone === true;
+    const dismissed = localStorage.getItem("vm_ios_hint_dismissed");
+    if (isIOS && !isStandalone && !dismissed) setShowIOSHint(true);
+
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === "accepted") setInstallPrompt(null);
+  };
+
+  const dismissIOSHint = () => {
+    setShowIOSHint(false);
+    localStorage.setItem("vm_ios_hint_dismissed", "1");
+  };
+
   // State: Travel Planner
   const [plannerDestination, setPlannerDestination] = useState("");
   const [plannerDays, setPlannerDays] = useState(3);
@@ -1638,6 +1675,41 @@ ${restHtml}
           </div>
         </div>
       </footer>
+
+      {/* Android / Chrome install prompt */}
+      {installPrompt && (
+        <div className="fixed bottom-20 md:bottom-6 right-4 z-50 bg-[#1A1A1A] text-[#F4F4F1] border border-[#F4F4F1]/20 p-4 flex items-center gap-4 shadow-2xl max-w-xs w-[calc(100%-2rem)] md:w-auto">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em]">Install VentureMap</p>
+            <p className="text-[9px] text-[#F4F4F1]/55 mt-0.5 leading-relaxed">Add to home screen — works offline, saves your data.</p>
+          </div>
+          <div className="flex gap-2 flex-shrink-0">
+            <button onClick={handleInstall} className="bg-[#F4F4F1] text-[#1A1A1A] text-[9px] font-bold uppercase tracking-wider px-3 py-2 hover:bg-[#EAEAE5] transition-colors">
+              Install
+            </button>
+            <button onClick={() => setInstallPrompt(null)} className="text-[#F4F4F1]/50 hover:text-[#F4F4F1] text-sm px-1 py-2 transition-colors">
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* iOS Safari "Add to Home Screen" hint */}
+      {showIOSHint && (
+        <div className="fixed bottom-20 left-4 right-4 z-50 bg-[#1A1A1A] text-[#F4F4F1] border border-[#F4F4F1]/20 p-4 shadow-2xl">
+          <div className="flex justify-between items-start gap-3">
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em]">Install on iPhone / iPad</p>
+              <p className="text-[9px] text-[#F4F4F1]/60 leading-relaxed">
+                Tap the <strong className="text-[#F4F4F1]/90">Share</strong> button (↑) in Safari, then choose <strong className="text-[#F4F4F1]/90">Add to Home Screen</strong>. Works offline and saves your pins locally.
+              </p>
+            </div>
+            <button onClick={dismissIOSHint} className="text-[#F4F4F1]/50 hover:text-[#F4F4F1] text-sm flex-shrink-0 transition-colors">
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
