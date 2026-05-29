@@ -623,7 +623,7 @@ ${restHtml}
       </div>
 
       {/* Header — compact on mobile, full on desktop */}
-      <header className="sticky top-0 z-40 bg-[#F4F4F1]/95 backdrop-blur-md border-b border-[#1A1A1A] py-3 md:py-6 px-4 md:px-12 flex items-center justify-between gap-4 transition-all">
+      <header className="sticky top-0 z-[1001] bg-[#F4F4F1]/95 backdrop-blur-md border-b border-[#1A1A1A] py-3 md:py-6 px-4 md:px-12 flex items-center justify-between gap-4 transition-all">
         <div className="flex items-center gap-3">
           {/* Map-pin logo: dark circle with VM + downward point */}
           <div className="flex-shrink-0 flex flex-col items-center">
@@ -665,7 +665,7 @@ ${restHtml}
 
       {/* Mobile Bottom Navigation — pb accounts for iPhone home indicator */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#F4F4F1] border-t-2 border-[#1A1A1A] flex items-stretch"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-[1001] bg-[#F4F4F1] border-t-2 border-[#1A1A1A] flex items-stretch"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {(["wishlist","explore","planner","checklist","album"] as const).map((tab, i) => {
@@ -1709,7 +1709,7 @@ ${restHtml}
 
       {/* Android / Chrome install prompt */}
       {installPrompt && (
-        <div className="fixed bottom-20 md:bottom-6 right-4 z-50 bg-[#1A1A1A] text-[#F4F4F1] border border-[#F4F4F1]/20 p-4 flex items-center gap-4 shadow-2xl max-w-xs w-[calc(100%-2rem)] md:w-auto">
+        <div className="fixed bottom-20 md:bottom-6 right-4 z-[1002] bg-[#1A1A1A] text-[#F4F4F1] border border-[#F4F4F1]/20 p-4 flex items-center gap-4 shadow-2xl max-w-xs w-[calc(100%-2rem)] md:w-auto">
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.15em]">Install VentureMap</p>
             <p className="text-[9px] text-[#F4F4F1]/55 mt-0.5 leading-relaxed">Add to home screen — works offline, saves your data.</p>
@@ -1727,7 +1727,7 @@ ${restHtml}
 
       {/* iOS Safari "Add to Home Screen" hint */}
       {showIOSHint && (
-        <div className="fixed bottom-20 left-4 right-4 z-50 bg-[#1A1A1A] text-[#F4F4F1] border border-[#F4F4F1]/20 p-4 shadow-2xl">
+        <div className="fixed bottom-20 left-4 right-4 z-[1002] bg-[#1A1A1A] text-[#F4F4F1] border border-[#F4F4F1]/20 p-4 shadow-2xl">
           <div className="flex justify-between items-start gap-3">
             <div className="space-y-1.5">
               <p className="text-[10px] font-bold uppercase tracking-[0.15em]">Install on iPhone / iPad</p>
