@@ -113,7 +113,7 @@ For budgetBreakdown: provide realistic per-category cost ranges (e.g. "$400-600"
         },
       ],
       temperature: 0.8,
-      max_tokens: 4096,
+      max_tokens: 8192,
     });
 
     const itineraryJson = completion.choices[0]?.message?.content;
@@ -168,7 +168,7 @@ Enhance the descriptions, add historical notes if applicable, and format it arti
         },
       ],
       temperature: 0.9,
-      max_tokens: 1024,
+      max_tokens: 2048,
     });
 
     const travelogueJson = completion.choices[0]?.message?.content;
